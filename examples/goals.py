@@ -16,7 +16,7 @@ games = es.events.leagues(57973).finished().allfields().fetch()
 
 
 for goal in games.goals:
-    print goal
+    print(goal)
 
 
 

@@ -13,7 +13,7 @@ es = everysport.Everysport(APIKEY)
 for event in es.events.today():
     facts = event.get('facts', None)
     if facts:
-        print facts.get('arena', {})
+        print(facts.get('arena', {}))
 
 
 

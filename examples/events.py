@@ -11,7 +11,7 @@ es = everysport.Everysport(APIKEY)
 
 
 for e in es.events.football().today():
-    print e
+    print(e)
 
 
 

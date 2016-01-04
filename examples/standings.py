@@ -15,14 +15,14 @@ nhl = es.get_standings(58878)
 
 
 #Standings for complete league
-print allsvenskan.league
+print(allsvenskan.league)
 
 
 #Standings by group types in NHL
 for group_type in nhl.grouptypes: # e.g. 'conference'
-    print group_type.upper()    
+    print(group_type.upper())    
     for group_name in nhl.get_groupnames_by_type(group_type):         
-        print nhl.get_group_by_name(group_name)
+        print(nhl.get_group_by_name(group_name))
 
 
     

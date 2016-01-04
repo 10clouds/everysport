@@ -12,4 +12,4 @@ es = everysport.Everysport(APIKEY)
 
 
 for event in es.events.ongoing().today():
-    print event
+    print(event)

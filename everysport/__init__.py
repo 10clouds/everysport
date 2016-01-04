@@ -4,8 +4,8 @@
 '''A Python wrapper for the Everysport API
 '''
 
-from everysport import Everysport
-from everysport import EverysportException
+from .everysport import Everysport
+from .everysport import EverysportException
 
 
 

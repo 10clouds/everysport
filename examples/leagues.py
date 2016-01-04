@@ -11,7 +11,7 @@ es = everysport.Everysport(APIKEY)
 
 #Print all current swedish hockey leagues
 for league in es.leagues.hockey().sweden():
-    print league
+    print(league)
 
 
 

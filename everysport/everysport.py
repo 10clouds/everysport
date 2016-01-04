@@ -6,8 +6,8 @@
 '''
 
 import datetime
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 import json
 import functools
 import logging
@@ -137,7 +137,7 @@ class ApiQuery:
         self.params = {}
         self.params['apikey'] = apikey
 
-        for name, value in SPORT_ID_MAP.items():
+        for name, value in list(SPORT_ID_MAP.items()):
             setattr(self, name, SportQueryAccumulator(self, value))
 
     
@@ -335,15 +335,15 @@ def _get_resource(endpoint, **params):
 
     BASE_API_URL = "http://api.everysport.com/v1/{}"
 
-    url = BASE_API_URL.format(endpoint) + "?" + urllib.urlencode(params)    
+    url = BASE_API_URL.format(endpoint) + "?" + urllib.parse.urlencode(params)    
 
     try:
-        response = urllib2.urlopen(url)
+        response = urllib.request.urlopen(url)
         logging.debug("Getting {}".format(url))
-        return json.load(response)
+        return json.loads(response.read().decode('utf-8'))
 
     except Exception as e:                
-        raise EverysportException('Could not load {} with {} : \n{}'.format(url, params, e.message))
+        raise EverysportException('Could not load {} with {} : \n{}'.format(url, params, e))
 
 
 
