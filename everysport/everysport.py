@@ -329,7 +329,6 @@ def cache(fn):
     return wrapper
 
 
-@cache
 def _get_resource(endpoint, **params):
     '''This is used to fetch the resource at a given API endpoint. It's used by the Everysport object itself''' 
 
