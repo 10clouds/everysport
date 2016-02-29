@@ -336,14 +336,9 @@ def _get_resource(endpoint, **params):
 
     url = BASE_API_URL.format(endpoint) + "?" + urllib.parse.urlencode(params)    
 
-    try:
-        response = urllib.request.urlopen(url)
-        logging.debug("Getting {}".format(url))
-        return json.loads(response.read().decode('utf-8'))
-
-    except Exception as e:                
-        raise EverysportException('Could not load {} with {} : \n{}'.format(url, params, e))
-
+    response = urllib.request.urlopen(url)
+    logging.debug("Getting {}".format(url))
+    return json.loads(response.read().decode('utf-8'))
 
 
 def _fetch_pages(endpoint, entity, **params):
