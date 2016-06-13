@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-'''everysport.py
 
-
-'''
+"""
+simple SDK for everysport API
+"""
 
 import datetime
 import urllib.request, urllib.parse, urllib.error
@@ -12,89 +12,96 @@ import json
 import functools
 import logging
 
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 
 class EverysportException(Exception):
-    '''Exception for the Everysport module'''
+    """
+    Exception for the Everysport module
+    """
     pass
 
 
 class Everysport(object):
-    '''A Python wrapper for the Everysport API
+    """
+    A Python wrapper for the Everysport API
 
     Example usage: 
 
-    #Create Everysport object 
+    # Create Everysport object
     es = everysport.Everysport(APIKEY)
     
-    #Leagues
+    # Leagues
     nhl = es.get_league(everysport.NHL)
-
-
-    '''
+    """
 
     def __init__(self, apikey):
-        '''Initialize an instance of Everysport with your APIKEY'''
+        """
+        Initialize an instance of Everysport with your APIKEY
+        """
         self.apikey = apikey  
 
-
     def get_league(self, league_id):
-        '''Returns a League object
+        """
+        Returns a League object
 
         Arguments:
         league_id - the league ID from everysport.com
 
-        '''
+        """
         endpoint = "leagues/" + str(league_id)
         response = _get_resource(endpoint, apikey=self.apikey) 
         return response.get('league', {})
 
-
     @property
     def leagues(self):
-        '''Returns a LeaguesQuery'''
+        """
+        Returns a LeaguesQuery
+        """
         return LeaguesQuery(self.apikey)
 
     @property
     def events(self):
-        '''Returns an EventsQuery'''
+        """
+        Returns an EventsQuery
+        """
         return EventsQuery(self.apikey)
 
-
     def get_event(self, event_id):
-        '''Returns an Event object
+        """
+        Returns an Event object
 
-        Arguments:
-        event_id - the event ID from everysport.com.
-
-        '''
+        :param event_id: the event ID from everysport.com.
+        :return: dictionary that contains event data
+        """
         endpoint = "events/" + str(event_id)
         response = _get_resource(endpoint, apikey=self.apikey) 
         return response.get('event', {})
 
-
     def get_events_for_league(self, league_id):
-        '''Returns a EventsQuery'''
+        """
+        Returns a EventsQuery
+        """
         return EventsQuery(self.apikey).leagues(league_id)
 
-
     def get_standings(self, league_id, r="", t="total"):
-        '''Gets standings for a league.
+        """
+        Gets standings for a league.
 
-        Arguments:
-        league_id - the League ID
-        r - The round number, e.g. 1,2,3,...
-        t - One of "total", "home", "away". 
-
-        '''
-        endpoint = "leagues/" +str(league_id)+"/standings"
-        response = _get_resource(endpoint, 
-                                apikey=self.apikey, 
-                                round=r, 
-                                type=t)
+        :param league_id: the League ID
+        :param r: The round number, e.g. 1,2,3,...
+        :param t: One of "total", "home", "away".
+        :return: StandingsGroupsList object
+        """
+        endpoint = "leagues/" + str(league_id)+"/standings"
+        response = _get_resource(
+            endpoint,
+            apikey=self.apikey,
+            round=r,
+            type=t
+        )
         return StandingsGroupsList(response.get('groups', []))
-
-
 
 SPORT_ID_MAP = {
     'american_football': 18,
@@ -117,8 +124,11 @@ SPORT_ID_MAP = {
     'volleyball': 11
 }
 
+
 class SportQueryAccumulator:
-    '''This is used by ApiQuery class to generate the sport query functions such as football() and hockey().'''
+    """
+    This is used by ApiQuery class to generate the sport query functions such as football() and hockey().
+    """
     def __init__(self, query_obj, sport_id):
         self.query_obj = query_obj
         self.sport_id = sport_id
@@ -131,7 +141,9 @@ class SportQueryAccumulator:
 
 
 class ApiQuery:
-    '''Abstract object for Queries against the API'''
+    """
+    Abstract object for Queries against the API
+    """
 
     def __init__(self, apikey):
         self.params = {}
@@ -140,17 +152,16 @@ class ApiQuery:
         for name, value in list(SPORT_ID_MAP.items()):
             setattr(self, name, SportQueryAccumulator(self, value))
 
-    
     def sport(self, *sports):
         '''Queries events for one or many sports, by Sport ID'''
         self.params['sport'] = ",".join(map(str, sports))
         return self
 
 
-
-
 class LeaguesQuery(ApiQuery):
-    '''Query for leagues'''
+    """
+    Query for leagues
+    """
 
     def sweden(self):
         '''Returns only swedish leagues'''
@@ -158,7 +169,9 @@ class LeaguesQuery(ApiQuery):
         return self        
 
     def __iter__(self):
-        '''Returns an iterator over the result'''
+        """
+        :return: iterator
+        """
         return _fetch_pages('leagues', 'leagues', **self.params)
 
     def fetch(self):
@@ -194,11 +207,9 @@ class StandingsGroupsList(list):
         '''Group names for the given type'''
         return {label['name'] for group in self for label in group['labels'] if group_type==label['type']} 
 
-
     def get_groups_by_type(self, group_type):
         '''Groups of the given type'''
         return [group for group in self if group_type in [label['type'] for label in group['labels']]]
-
 
     def get_group_by_name(self, group_name):
         '''Gets the group with the given name'''
@@ -208,7 +219,6 @@ class StandingsGroupsList(list):
             if group_name in names:
                 return group
 
-
     def get_stats_for_team(self, team_id):
         for group in self:
             for standing in group.get('standings', []):
@@ -217,9 +227,10 @@ class StandingsGroupsList(list):
                     return { s['name'] : s['value'] for s in standing.get('stats', [])}
 
 
-
 class EventsList(list):
-    '''A list of Event objects. This is what you get back when you fetch an EventQuery'''
+    """
+    A list of Event objects. This is what you get back when you fetch an EventQuery
+    """
 
     @property
     def gameevents(self):
@@ -241,7 +252,9 @@ class EventsList(list):
 
 
 class EventsQuery(ApiQuery):
-    '''A query for one or many events. '''
+    """
+    A query for one or many events.
+    """
 
     def leagues(self, *league_ids):
         '''Queries for one or many leagues'''
@@ -295,12 +308,12 @@ class EventsQuery(ApiQuery):
         self.params['round'] = ",".join(map(str,x))
         return self 
 
-
     def allfields(self):
-        '''Includes all fields in response, e.g. game events'''
+        """
+        Includes all fields in response, e.g. game events
+        """
         self.params['fields'] = "all"
         return self
-
 
     def __iter__(self):
         '''Returns an iterator over the events'''
@@ -309,7 +322,6 @@ class EventsQuery(ApiQuery):
     def fetch(self):
         '''Fetches the entire list of events into an EventsList object'''
         return EventsList(self)
-
 
 
 def cache(fn):
@@ -330,14 +342,16 @@ def cache(fn):
 
 
 def _get_resource(endpoint, **params):
-    '''This is used to fetch the resource at a given API endpoint. It's used by the Everysport object itself''' 
+    """
+    This is used to fetch the resource at a given API endpoint. It's used by the Everysport object itself
+    """
 
     BASE_API_URL = "http://api.everysport.com/v1/{}"
 
     url = BASE_API_URL.format(endpoint) + "?" + urllib.parse.urlencode(params)    
 
     response = urllib.request.urlopen(url)
-    logging.debug("Getting {}".format(url))
+    log.debug("Getting {}".format(url))
     return json.loads(response.read().decode('utf-8'))
 
 
