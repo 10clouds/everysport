@@ -7,7 +7,6 @@ simple SDK for everysport API
 
 import datetime
 import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
 import json
 import functools
 import logging
@@ -84,6 +83,12 @@ class Everysport(object):
         Returns a EventsQuery
         """
         return EventsQuery(self.apikey).leagues(league_id)
+
+    def get_teams_for_league(self, league_id):
+        """
+        Returns teams list that play in a league
+        """
+        return LeaguesQuery(self.apikey).teams(league_id)
 
     def get_standings(self, league_id, r="", t="total"):
         """
@@ -176,6 +181,19 @@ class LeaguesQuery(ApiQuery):
 
     def fetch(self):
         return list(self)
+
+    def teams(self, league_id):
+        """
+        :param league_id: int
+        :return: list of teams dictionaries
+        """
+        endpoint = 'leagues/%d/teams' % league_id
+        try:
+            response = _get_resource(endpoint, apikey=self.params['apikey'])
+        except urllib.error.HTTPError:
+            log.exception("cannot fetch teams for following league: %d" % league_id)
+            return []
+        return response.get('teams', [])
 
 
 class StandingsGroupsList(list):
@@ -356,11 +374,13 @@ def _get_resource(endpoint, **params):
 
 
 def _fetch_pages(endpoint, entity, **params):
-    '''This is used to fetch several pages of a resource, such as a long list of events. It's used by the Everysport object itself.
+    """
+    This is used to fetch several pages of a resource, such as a long list of events.
+    It's used by the Everysport object itself.
 
-        The function is a Generator and yields one item at at time. 
+    The function is a Generator and yields one item at at time.
 
-    ''' 
+    """
 
     done = False
     while not done:
